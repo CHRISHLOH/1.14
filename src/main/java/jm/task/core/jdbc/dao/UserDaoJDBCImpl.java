@@ -7,19 +7,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserDaoJDBCImpl implements UserDao {
+    private final Connection connection = Util.getConnection();
     public UserDaoJDBCImpl() {
 
     }
 
     public void createUsersTable() {
-        String sqlCommand = "CREATE TABLE users (\n" +
+        String sqlCommand = "CREATE TABLE IF NOT EXISTS users (\n" +
             "  `id` BIGINT NOT NULL AUTO_INCREMENT,\n" +
             "  `name` VARCHAR(45) NOT NULL,\n" +
             "  `lastName` VARCHAR(45) NOT NULL,\n" +
             "  `age` TINYINT NOT NULL,\n" +
-            "  PRIMARY KEY (`id`),\n" +
-            "  UNIQUE INDEX `ID_UNIQUE` (`id` ASC) VISIBLE);";
-        try (Statement statement = Util.getConnection().createStatement()){
+            "   CONSTRAINT PK_users PRIMARY KEY (`id`));";
+
+        try (Statement statement = connection.createStatement()){
             statement.executeUpdate(sqlCommand);
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -29,7 +30,7 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public void dropUsersTable() {
         String sqlCommand = "DROP TABLE IF EXISTS users";
-        try (Statement statement = Util.getConnection().createStatement()){
+        try (Statement statement = connection.createStatement()){
             statement.executeUpdate(sqlCommand);
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -38,7 +39,7 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public void saveUser(String name, String lastName, byte age) {
         String sqlCommand = "INSERT INTO users(name, lastName, age) VALUES (?, ?, ?)";
-        try (PreparedStatement statement = Util.getConnection().prepareStatement(sqlCommand)){
+        try (PreparedStatement statement = connection.prepareStatement(sqlCommand)){
             statement.setString(1, name);
             statement.setString(2, lastName);
             statement.setByte(3, age);
@@ -50,7 +51,7 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public void removeUserById(long id) {
         String sqlCommand = "DELETE FROM users WHERE id = ?";
-        try (PreparedStatement statement = Util.getConnection().prepareStatement(sqlCommand)){
+        try (PreparedStatement statement = connection.prepareStatement(sqlCommand)){
             statement.setLong(1, id);
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -61,7 +62,7 @@ public class UserDaoJDBCImpl implements UserDao {
     public List<User> getAllUsers() {
         ArrayList <User> list = new ArrayList();
         String sqlCommand = "SELECT * FROM users";
-        try (Statement statement = Util.getConnection().createStatement()){
+        try (Statement statement = connection.createStatement()){
             ResultSet resultSet = statement.executeQuery(sqlCommand);
             while (resultSet.next()){
                 User user = new User();
@@ -79,7 +80,7 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public void cleanUsersTable() {
         String sqlCommand = "TRUNCATE TABLE users";
-        try (Statement statement = Util.getConnection().createStatement()){
+        try (Statement statement = connection.createStatement()){
             statement.executeUpdate(sqlCommand);
         } catch (SQLException e) {
             throw new RuntimeException(e);
